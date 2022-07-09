@@ -82,13 +82,18 @@ public class TileDB {
 		InputStream tileDataInputStream = null;
     	try {
 			ResultSet resultSet = SQLHelper.executeQuery(connection, sql);
-			tileDataInputStream = resultSet.getBinaryStream("bytes");
-			tileDataInputStream.close();
-			byte[] ret=tileDataInputStream.readAllBytes();
-            return ret;
+			if(resultSet.isClosed()) {
+				return null;
+			}else {
+				tileDataInputStream = resultSet.getBinaryStream("bytes");
+				byte[] ret=tileDataInputStream.readAllBytes();
+	            return ret;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
+		}finally {
+			tileDataInputStream.close();
 		}
     }
 	

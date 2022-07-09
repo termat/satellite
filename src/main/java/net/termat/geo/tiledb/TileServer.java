@@ -1,21 +1,26 @@
 package net.termat.geo.tiledb;
 
-import static spark.Spark.get;
+import static spark.Spark.*;
 
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 
 public class TileServer {
+	private Properties properties;
 	private Map<String,TileDB> tiles;
 	private Map<String,TileProperty> props;
 	private List<Tiles> images;
@@ -24,12 +29,31 @@ public class TileServer {
 	private List<Map<String,String>> geojson;
 	private Point2D pos;
 
-	public static void runServer() {
+	public static TileServer runServer() {
 		try {
-			new TileServer();
+			TileServer ret=new TileServer();
+			return ret;
 		} catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
+	}
+	
+	public Properties getPropeties(){
+		return properties;
+	}
+	
+	public void updatePropertes() {
+		File p=new File("setting.properties");
+		try {
+			properties.store(Files.newOutputStream(p.toPath()), "setting");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void stop() {
+		Spark.stop();
 	}
 	
 	private TileServer() throws ClassNotFoundException, SQLException {
@@ -39,6 +63,7 @@ public class TileServer {
 			Spark.port(port);
 		});
 		Spark.staticFileLocation("/public");
+		checkProps();
 		new CorsFilter().apply();
 		tiles=new HashMap<>();
 		props=new HashMap<>();
@@ -132,17 +157,12 @@ public class TileServer {
 			model.put("jsons", geojson);
 			model.put("centerX", pos.getX());
 			model.put("centerY", pos.getY());
+			model.put("zoom", Double.parseDouble(properties.getProperty("zoom")));
+			model.put("maxzoom", Double.parseDouble(properties.getProperty("zoom_max")));
+			model.put("minzoom", Double.parseDouble(properties.getProperty("zoom_min")));
+			model.put("pitch", Double.parseDouble(properties.getProperty("pitch")));
+			model.put("bearing", Double.parseDouble(properties.getProperty("bearing")));
 			return new ModelAndView(model, "map2d.mustache");
-			},new MustacheTemplateEngine());
-
-		get("/map2d2",(request, response) -> {
-			Map<String, Object> model = new HashMap<>();
-			model.put("captions", images);
-			model.put("vectors", vectors);
-			model.put("jsons", geojson);
-			model.put("centerX", pos.getX());
-			model.put("centerY", pos.getY());
-			return new ModelAndView(model, "map2d2.mustache");
 			},new MustacheTemplateEngine());
 	
 		get("/map3d",(request, response) -> {
@@ -153,6 +173,11 @@ public class TileServer {
 			model.put("jsons", geojson);
 			model.put("centerX", pos.getX());
 			model.put("centerY", pos.getY());
+			model.put("zoom", Double.parseDouble(properties.getProperty("zoom")));
+			model.put("maxzoom", Double.parseDouble(properties.getProperty("zoom_max")));
+			model.put("minzoom", Double.parseDouble(properties.getProperty("zoom_min")));
+			model.put("pitch", Double.parseDouble(properties.getProperty("pitch")));
+			model.put("bearing", Double.parseDouble(properties.getProperty("bearing")));
 			return new ModelAndView(model, "map3d.mustache");
 			},new MustacheTemplateEngine());
 	}
@@ -184,5 +209,30 @@ public class TileServer {
 		List<File> ret=new ArrayList<>();
 		for(File f : ff)ret.add(0, f);
 		return ret;
+	}
+	
+	private void checkProps() {
+		File p=new File("setting.properties");
+		if(p.exists()) {
+			properties=new Properties();
+			try {
+				properties.load(Files.newBufferedReader(p.toPath(), StandardCharsets.UTF_8));
+			} catch (IOException e) {
+				e.printStackTrace();
+				initProps();
+			}
+		}else {
+			properties=new Properties();
+			initProps();
+		}
+	}
+	
+	private void initProps() {
+		properties.setProperty("zoom", "12");
+		properties.setProperty("zoom_max", "15");
+		properties.setProperty("zoom_min", "10");
+		properties.setProperty("pitch", "70");
+		properties.setProperty("bearing", "0");
+		updatePropertes();
 	}
 }
