@@ -1,6 +1,7 @@
 package net.termat.geo.satellite;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
@@ -237,5 +238,139 @@ public class ImageReader {
 			}
 		}
 		band=tmp;
+	}
+	
+	public static ImageReader connectReader(ImageReader src,ImageReader dst) throws IOException {
+		ImageReader sd=new ImageReader();
+		sd.srs=src.srs;
+		sd.epsg=src.epsg;
+		AffineTransform af1=src.atrans;
+		AffineTransform af2=dst.atrans;
+		Rectangle2D rect=null;
+		BufferedImage b1=src.getImage();
+		BufferedImage b2=dst.getImage();
+		if(rect==null)rect=getAppendBounds(b1,af1,b2,af2);
+		sd.band=appendDataPoint(rect,b1,af1,b2,af2);
+		double[] param=new double[] {af1.getScaleX(),0,0,af1.getScaleY(),rect.getX(),rect.getY()+rect.getHeight()};
+		sd.atrans=new AffineTransform(param);
+		sd.chName=src.chName;
+		return sd;
+	}
+	
+	public static ImageReader connectReader(ImageReader src,ImageReader dst,Color bg) throws IOException {
+		ImageReader sd=new ImageReader();
+		sd.srs=src.srs;
+		sd.epsg=src.epsg;
+		AffineTransform af1=src.atrans;
+		AffineTransform af2=dst.atrans;
+		Rectangle2D rect=null;
+		BufferedImage b1=src.getImage();
+		BufferedImage b2=dst.getImage();
+		if(rect==null)rect=getAppendBounds(b1,af1,b2,af2);
+		sd.band=appendDataPoint(rect,b1,af1,b2,af2,bg);
+		double[] param=new double[] {af1.getScaleX(),0,0,af1.getScaleY(),rect.getX(),rect.getY()+rect.getHeight()};
+		sd.atrans=new AffineTransform(param);
+		sd.chName=src.chName;
+		return sd;
+	}
+
+	private static Rectangle2D getAppendBounds(BufferedImage f1,AffineTransform af1,BufferedImage f2,AffineTransform af2) {
+		Rectangle2D rect=null;
+		for(int i=0;i<f1.getWidth();i++) {
+			for(int j=0;j<f1.getHeight();j++) {
+				Point2D p=af1.transform(new Point2D.Double(i, j), new Point2D.Double());
+				if(rect==null) {
+					rect=new Rectangle2D.Double(p.getX(),p.getY(),0,0);
+				}else {
+					rect.add(p);
+				}
+			}
+		}
+		for(int i=0;i<f2.getWidth();i++) {
+			for(int j=0;j<f2.getHeight();j++) {
+				Point2D p=af2.transform(new Point2D.Double(i, j), new Point2D.Double());
+				rect.add(p);
+			}
+		}
+		return rect;
+	}
+	
+	
+	private static BufferedImage appendDataPoint(Rectangle2D rect,BufferedImage f1,AffineTransform af1,BufferedImage f2,AffineTransform af2) {
+		double[] param=new double[] {af1.getScaleX(),0,0,af1.getScaleY(),rect.getX(),rect.getY()+rect.getHeight()};
+		AffineTransform af=new AffineTransform(param);
+		int ww=(int)Math.abs(rect.getWidth()/af.getScaleX());
+		int hh=(int)Math.abs(rect.getHeight()/af.getScaleY());
+		BufferedImage ret=new BufferedImage(ww,hh,BufferedImage.TYPE_INT_RGB);
+		AffineTransform iaf1=null,iaf2=null;
+		try {
+			iaf1=af1.createInverse();
+			iaf2=af2.createInverse();
+		} catch (NoninvertibleTransformException e) {
+			e.printStackTrace();
+		}
+		int w1=f1.getWidth();
+		int h1=f1.getHeight();
+		int w2=f2.getWidth();
+		int h2=f2.getHeight();
+		for(int i=0;i<ww;i++) {
+			for(int j=0;j<hh;j++) {
+				Point2D p=af.transform(new Point2D.Double(i, j), new Point2D.Double());
+				Point2D pt=iaf1.transform(p, new Point2D.Double());
+				int xx=(int)Math.floor(pt.getX());
+				int yy=(int)Math.floor(pt.getY());
+				if(xx>=0&&xx<w1&&yy>=0&&yy<h1) {
+					ret.setRGB(i, j, f1.getRGB(xx, yy));
+				}
+				pt=iaf2.transform(p, new Point2D.Double());
+				xx=(int)Math.floor(pt.getX());
+				yy=(int)Math.floor(pt.getY());
+				if(xx>=0&&xx<w2&&yy>=0&&yy<h2) {
+					ret.setRGB(i, j, f2.getRGB(xx, yy));
+				}
+			}
+		}
+		return ret;
+	}
+	
+	private static BufferedImage appendDataPoint(Rectangle2D rect,BufferedImage f1,AffineTransform af1,BufferedImage f2,AffineTransform af2,Color bg) {
+		double[] param=new double[] {af1.getScaleX(),0,0,af1.getScaleY(),rect.getX(),rect.getY()+rect.getHeight()};
+		AffineTransform af=new AffineTransform(param);
+		int ww=(int)Math.abs(rect.getWidth()/af.getScaleX());
+		int hh=(int)Math.abs(rect.getHeight()/af.getScaleY());
+		BufferedImage ret=new BufferedImage(ww,hh,BufferedImage.TYPE_INT_RGB);
+		Graphics2D g=ret.createGraphics();
+		g.setBackground(bg);
+		g.clearRect(0, 0, ww, hh);
+		g.dispose();
+		AffineTransform iaf1=null,iaf2=null;
+		try {
+			iaf1=af1.createInverse();
+			iaf2=af2.createInverse();
+		} catch (NoninvertibleTransformException e) {
+			e.printStackTrace();
+		}
+		int w1=f1.getWidth();
+		int h1=f1.getHeight();
+		int w2=f2.getWidth();
+		int h2=f2.getHeight();
+		for(int i=0;i<ww;i++) {
+			for(int j=0;j<hh;j++) {
+				Point2D p=af.transform(new Point2D.Double(i, j), new Point2D.Double());
+				Point2D pt=iaf1.transform(p, new Point2D.Double());
+				int xx=(int)Math.round(pt.getX());
+				int yy=(int)Math.round(pt.getY());
+				if(xx>=0&&xx<w1&&yy>=0&&yy<h1) {
+					ret.setRGB(i, j, f1.getRGB(xx, yy));
+				}
+				pt=iaf2.transform(p, new Point2D.Double());
+				xx=(int)Math.round(pt.getX());
+				yy=(int)Math.round(pt.getY());
+				if(xx>=0&&xx<w2&&yy>=0&&yy<h2) {
+					ret.setRGB(i, j, f2.getRGB(xx, yy));
+				}
+			}
+		}
+		return ret;
 	}
 }

@@ -262,7 +262,7 @@ public class BandReader {
 		return sd;
 	}
 	
-	public static BandReader connectSatReader(BandReader src,BandReader dst) {
+	public static BandReader connectReader(BandReader src,BandReader dst) {
 		if(src.band.size()!=dst.band.size()) {
 			throw new IllegalArgumentException("Band numbers do not match");
 		}else if(src.epsg!=dst.epsg) {

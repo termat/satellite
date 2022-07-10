@@ -77,6 +77,12 @@ public class TileDB {
 		}
 	}
 	
+	public List<Tile> getTileAtZoom(int z) throws SQLException {
+		QueryBuilder<Tile, Long> query=tile.queryBuilder();
+		query.where().eq("z", z);
+		return tile.query(query.prepare());
+	}
+	
     public byte[] getTileBytes(int zoom, int x, int y) throws IOException{
     	String sql = String.format("SELECT bytes FROM tile WHERE z = %d AND x = %d AND y = %d", zoom, x, y);
 		InputStream tileDataInputStream = null;
