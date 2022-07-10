@@ -52,8 +52,8 @@ public class TileServer {
 		}
 	}
 	
-	public void stop() {
-		Spark.stop();
+	public Map<String,TileProperty> getTileProperties(){
+		return props;
 	}
 	
 	private TileServer() throws ClassNotFoundException, SQLException {
