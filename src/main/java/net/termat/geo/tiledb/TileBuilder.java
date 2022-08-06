@@ -185,8 +185,6 @@ public class TileBuilder {
 		}
 	}
 	
-
-	
 	public static void buildWebVectorTile(String url,File out,TileProperty tp,Rectangle2D rectWgs84) throws ClassNotFoundException, SQLException {
 		TileDB db=TileDB.open(out);
 		db.setProperty(tp);

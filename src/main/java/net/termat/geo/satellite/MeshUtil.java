@@ -16,7 +16,7 @@ import com.mapbox.geojson.Polygon;
 
 public class MeshUtil {
 
-	public enum BasicMeshType{S50000,S5000,S2500,S1000};
+	public enum BasicMeshType{S50000,S5000,S2500,S1000,S500};
 	public enum StdMeshType{FIRST,SECOND,THRED};
 	
 	private static String[] ALP=new String[] {"a","b","c","d","e","f","g","h","i","j","k",
@@ -228,6 +228,10 @@ public class MeshUtil {
 				lat=600;
 				lon=800;
 				break;
+			case S500:
+				lat=300;
+				lon=400;
+				break;
 		}
 		Set<String> ret=new HashSet<>();
 		double xw=Math.ceil(rect.getWidth()/lon)*lon;
@@ -256,8 +260,13 @@ public class MeshUtil {
 			double[] p3=getCoord2500(name);
 			return new Rectangle2D.Double(p1[0]+p2[0]+p3[0],p1[1]-p2[1]-1500-p3[1],2000,1500);
 		}else if(n==8){
-			double[] p4=getCoord1000(name);
-			return new Rectangle2D.Double(p1[0]+p2[0]+p4[0],p1[1]-p2[1]-600-p4[1],800,600);
+			if(!Character.isDigit(name.charAt(7))) {
+				double[] p4=getCoord1000(name);
+				return new Rectangle2D.Double(p1[0]+p2[0]+p4[0],p1[1]-p2[1]-600-p4[1],800,600);
+			}else {
+				double[] p4=getCoord500(name);
+				return new Rectangle2D.Double(p1[0]+p2[0]+p4[0],p1[1]-p2[1]-300-p4[1],400,300);
+			}
 		}
 		return null;
 	}
@@ -434,8 +443,16 @@ public class MeshUtil {
 		}else if(mm.equals("d")) {
 			return new double[] {2400,600*yy};
 		}else {
-			return new double[] {3200,600*yy};
+			return null;
 		}
+	}
+
+	private static double[] getCoord500(String name)  {
+		int yy=Integer.parseInt(name.substring(6,7));
+		int xx=Integer.parseInt(name.substring(7,8));
+		double py=yy*300;
+		double px=xx*400;
+		return new double[] {px,py};
 	}
 	
 	public static void main(String[] args) {

@@ -1,5 +1,7 @@
 package net.termat.geo.tiledb;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
@@ -15,26 +17,48 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Polygon;
 
 import com.google.protobuf.ByteString;
+import com.luciad.imageio.webp.WebPWriteParam;
+
+import net.termat.geo.mapdb.MapUtil;
 
 public class TileUtil {
 	
 	public static byte[] biToBytes(BufferedImage bi,String ext) throws IOException {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(bi,ext,baos);
-		baos.flush();
-		return baos.toByteArray();
+		if(ext.equals("webp")) {
+			return bi2BytesWebp(bi);
+		}else {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(bi,ext,baos);
+			baos.flush();
+			return baos.toByteArray();
+		}
 	}
 	
 	public static byte[] biToBytes(File f,String ext) throws IOException {
 		BufferedImage img=ImageIO.read(f);
+		return biToBytes(img,ext);
+	}
+	
+	public static byte[] bi2BytesWebp(BufferedImage img)throws IOException{
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(img,ext,baos);
+		ImageOutputStream  ios =  ImageIO.createImageOutputStream(baos);
+		ImageWriter writer = ImageIO.getImageWritersByMIMEType("image/webp").next();
+		WebPWriteParam writeParam = new WebPWriteParam(writer.getLocale());
+		writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+		writeParam.setCompressionType(writeParam.getCompressionTypes()[WebPWriteParam.LOSSLESS_COMPRESSION]);
+		writer.setOutput(ios);
+		writer.write(null, new IIOImage(img, null, null), writeParam);
+		ios.flush();
 		baos.flush();
 		return baos.toByteArray();
 	}
@@ -116,4 +140,23 @@ public class TileUtil {
 		return ret;
 	}
 	
+	public static BufferedImage toMapbox(BufferedImage img) {
+		BufferedImage ret=new BufferedImage(256,256,BufferedImage.TYPE_INT_RGB);
+		Color c=new Color(MapUtil.getRGBmapbox(0));
+		Graphics2D g=ret.createGraphics();
+		g.setBackground(c);
+		g.clearRect(0, 0, 256, 256);
+		g.dispose();
+		int x=Math.min(256, img.getWidth());
+		int y=Math.min(256, img.getHeight());
+		for(int i=0;i<x;i++) {
+			for(int j=0;j<y;j++) {
+				double h=MapUtil.getZ(img.getRGB(i,j));
+				if(!Double.isNaN(h)) {
+					ret.setRGB(i, j, MapUtil.getRGBmapbox(h));
+				}
+			}
+		}
+		return ret;
+	}
 }

@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.j256.ormlite.dao.Dao;
@@ -102,6 +103,18 @@ public class TileDB {
 			tileDataInputStream.close();
 		}
     }
+    
+	public List<Long> getIds() throws SQLException{
+		List<Long> ret = new ArrayList<>();
+		for (Tile t : tile.queryForAll()) {
+		    ret.add(t.id);
+		}
+    	return ret;
+    }
+	
+	public Tile getTileForId(long id) throws SQLException{
+		return tile.queryForId(id);
+	}
 	
 	public List<Tile> getAll() throws SQLException{
 		return tile.queryForAll();

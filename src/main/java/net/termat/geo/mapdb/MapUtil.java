@@ -98,14 +98,8 @@ public class MapUtil {
 	}
 	
 	public static double getZmapbox(int color){
-		color=(color << 8) >> 8;
-		if(color==8388608||color==-8388608){
-			return Double.NaN;
-		}else if(color<8388608){
-			return color * 0.01;
-		}else{
-			return (color-16777216)*0.01;
-		}
+		Color c=new Color(color);
+		return -10000+((c.getRed()*256*256)+c.getGreen()*256+c.getBlue())*0.1;
 	}
 	
 	public static void main(String[] args) {
