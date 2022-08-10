@@ -67,6 +67,19 @@ public class BandReader {
 		return ret;
 	}
 
+	public static BandReader createReader(int epsg,AffineTransform af,float[][][] val) {
+		BandReader ret=new BandReader();
+		ret.srs=BandUtil.createSpatialReference(epsg);
+		ret.epsg=epsg;
+		ret.atrans=af;
+		for(int i=0;i<val.length;i++) {
+			ret.table.add(null);
+			ret.chName.add("Channel-"+Integer.toString(i+1));
+			ret.band.add(val[i]);
+		}
+		return ret;
+	}
+	
 	private void readFileByte(File f) {
 		Dataset data=gdal.Open(f.getAbsolutePath());
 		srs=new SpatialReference(data.GetProjection());
@@ -153,6 +166,11 @@ public class BandReader {
 				e1.printStackTrace();
 			}
 		}
+	}
+	
+	public void addBand(float[][] v) {
+		band.add(v);
+		chName.add("Cannel-"+Integer.toString(band.size()));
 	}
 	
 	public void addBand(File f) {

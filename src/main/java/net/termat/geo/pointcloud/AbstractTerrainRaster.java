@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 
 import net.termat.components.gradient.Gradient;
 import net.termat.components.gradient.Range;
+import net.termat.geo.satellite.BandReader;
 import net.termat.geo.util.PCUtil;
 
 public abstract class AbstractTerrainRaster {
@@ -17,6 +18,17 @@ public abstract class AbstractTerrainRaster {
 	protected double[][] dem;
 	protected Cell[][] cell;
 
+	public AbstractTerrainRaster(BandReader br,int channel) {
+		float[][] dd=br.getBand(0);
+		dem=new double[dd.length][dd[0].length];
+		this.af=br.getTransform();
+		for(int i=0;i<dem.length;i++){
+			for(int j=0;j<dem[i].length;j++){
+				dem[i][j]=dd[i][j];
+			}
+		}
+	}
+	
 	public AbstractTerrainRaster(BufferedImage png,AffineTransform af){
 		dem=new double[png.getWidth()][png.getHeight()];
 		this.af=af;
@@ -99,6 +111,16 @@ public abstract class AbstractTerrainRaster {
 		for(int i=0;i<cell.length;i++){
 			for(int j=0;j<cell[i].length;j++){
 				cell[i][j].setValue(src);
+			}
+		}
+		return src;
+	}
+	
+	public float[][] getDataAsFloat(){
+		float[][] src=new float[dem.length][dem[0].length];
+		for(int i=0;i<cell.length;i++){
+			for(int j=0;j<cell[i].length;j++){
+				cell[i][j].setValueAsFloat(src);
 			}
 		}
 		return src;
@@ -200,6 +222,14 @@ public abstract class AbstractTerrainRaster {
 			for(int i=0;i<x.length;i++){
 				for(int j=0;j<y.length;j++){
 					data[x[i]][y[j]]=val;
+				}
+			}
+		}
+		
+		void setValueAsFloat(float[][] data){
+			for(int i=0;i<x.length;i++){
+				for(int j=0;j<y.length;j++){
+					data[x[i]][y[j]]=(float)val;
 				}
 			}
 		}

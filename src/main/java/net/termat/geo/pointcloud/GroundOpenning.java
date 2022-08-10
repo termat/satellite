@@ -8,6 +8,7 @@ import java.util.List;
 
 import net.termat.components.gradient.Gradient;
 import net.termat.components.gradient.Range;
+import net.termat.geo.satellite.BandReader;
 
 public class GroundOpenning extends AbstractTerrainRaster {
 	private double[][] above;
@@ -17,6 +18,10 @@ public class GroundOpenning extends AbstractTerrainRaster {
 	private int cell_height;
 	private double dx,dy;
 
+	public GroundOpenning(BandReader br,int channel) {
+		super(br,channel);
+	}
+	
 	public GroundOpenning(BufferedImage png, AffineTransform af) {
 		super(png, af);
 	}
@@ -66,6 +71,34 @@ public class GroundOpenning extends AbstractTerrainRaster {
 		return minmax(downward);
 	}
 
+	public float[][] getAboveAsFloat() {
+		float[][] ret=new float[dem.length][dem[0].length];
+		for(int i=0;i<cell.length;i++){
+			for(int j=0;j<cell[i].length;j++){
+				for(int xx : cell[i][j].x) {
+					for(int yy : cell[i][j].y) {
+						ret[yy][xx]=(float)above[i][j];
+					}
+				}
+			}
+		}
+		return ret;
+	}
+	
+	public float[][] getDoownwardAsFloat() {
+		float[][] ret=new float[dem.length][dem[0].length];
+		for(int i=0;i<cell.length;i++){
+			for(int j=0;j<cell[i].length;j++){
+				for(int xx : cell[i][j].x) {
+					for(int yy : cell[i][j].y) {
+						ret[yy][xx]=(float)downward[i][j];
+					}
+				}
+			}
+		}
+		return ret;
+	}
+	
 	public double[][] getNPYAbove() {
 		double[][] ret=new double[dem[0].length][dem.length];
 		for(int i=0;i<cell.length;i++){

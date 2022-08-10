@@ -3,11 +3,19 @@ package net.termat.geo.pointcloud;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
+import net.termat.geo.satellite.BandReader;
+
 
 public class Curveture extends AbstractTerrainRaster{
 	public enum Type{VERTICAL,HORIZONTAL}
 	private Type type;
 
+	public Curveture(BandReader br,int channel,Type type) {
+		super(br,channel);
+		this.type=type;
+	}
+	
+	
 	public Curveture(BufferedImage png,AffineTransform af,Type type) {
 		super(png,af);
 		this.type=type;

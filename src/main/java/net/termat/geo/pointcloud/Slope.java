@@ -3,8 +3,14 @@ package net.termat.geo.pointcloud;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
+import net.termat.geo.satellite.BandReader;
+
 public class Slope extends AbstractTerrainRaster{
 
+	public Slope(BandReader br,int channel) {
+		super(br,channel);
+	}
+	
 	public Slope(BufferedImage png, AffineTransform af) {
 		super(png, af);
 	}

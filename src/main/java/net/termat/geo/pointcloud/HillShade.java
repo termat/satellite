@@ -4,12 +4,18 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
+import net.termat.geo.satellite.BandReader;
+
 public class HillShade extends AbstractTerrainRaster{
 	private double zfactor=0.00001171;
 	private double z_scale=100;
 	private double azimush=-315;
 	private double altitude=45;
 
+	public HillShade(BandReader br,int channel) {
+		super(br,channel);
+	}
+	
 	public HillShade(BufferedImage png, AffineTransform af) {
 		super(png, af);
 	}

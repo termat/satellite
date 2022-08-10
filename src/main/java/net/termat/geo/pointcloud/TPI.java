@@ -10,16 +10,18 @@ import java.util.List;
 import net.termat.components.gradient.Gradient;
 import net.termat.components.gradient.GradientFactory;
 import net.termat.components.gradient.Range;
+import net.termat.geo.satellite.BandReader;
 
 public class TPI extends AbstractTerrainRaster{
 
 	private double[][] tpi;
 	private double stdv;
 	
-	/**
-	 *
-	 * @param dem 標高PNG
-	 */
+
+	public TPI(BandReader br,int channel) {
+		super(br,channel);
+	}
+	
 	public TPI(BufferedImage dem,AffineTransform af){
 		super(dem,af);
 	}

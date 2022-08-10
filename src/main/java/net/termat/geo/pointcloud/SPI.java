@@ -7,15 +7,17 @@ import java.awt.image.BufferedImage;
 import net.termat.components.gradient.Gradient;
 import net.termat.components.gradient.GradientFactory;
 import net.termat.components.gradient.Range;
+import net.termat.geo.satellite.BandReader;
 
 public class SPI extends AbstractTerrainRaster{
 
 	private double[][] spi;
 	
-	/**
-	 *
-	 * @param dem 標高PNG
-	 */
+
+	public SPI(BandReader br,int channel) {
+		super(br,channel);
+	}
+	
 	public SPI(BufferedImage dem,AffineTransform af){
 		super(dem,af);
 	}
