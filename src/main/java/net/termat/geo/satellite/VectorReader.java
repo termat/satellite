@@ -452,6 +452,21 @@ public class VectorReader {
 		ImageIO.write(img, "png", png);
 		PCUtil.writeTransform(af, new File(png.getAbsolutePath().replace(".png", ".pgw").replace(".PNG", ".pgw")));
 	}
+	
+	public VectorReader createBuffer(double dist) throws ParseException {
+		List<Geometry> li=new ArrayList<>();
+		List<JsonObject> jo=new ArrayList<>();
+		for(int i=0;i<geom.size();i++) {
+			Geometry g=geom.get(i);
+			org.gdal.ogr.Geometry g2=VecUtil.toOGR(g);
+			org.gdal.ogr.Geometry g3=g2.Buffer(dist);
+			if(g3.Area()>0) {
+				li.add(VecUtil.toJTS(g3));
+				jo.add(getProperty(i));
+			}
+		}
+		return createReader(epsg,li,jo);
+	}
 
 }
 

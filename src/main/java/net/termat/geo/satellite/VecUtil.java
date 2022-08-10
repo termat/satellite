@@ -60,6 +60,11 @@ public class VecUtil {
 		return geom;
 	}
 	
+	public static Geometry toJTS(org.gdal.ogr.Geometry g) throws ParseException {
+		org.locationtech.jts.geom.Geometry geom=gr.read(g.ExportToJson());
+		return geom;
+	}
+	
 	public static org.gdal.ogr.Geometry toOGR(Geometry g){
 		return org.gdal.ogr.Geometry.CreateFromJson(gw.write(g));
 	}
